@@ -52,7 +52,7 @@ export default class Middleware {
             where: {
                 id: Number(idUser)
             }
-        }).then((user) => {
+        }).then((user:any) => {
             if (user?.role === "VENDOR") {
                 next();
             }

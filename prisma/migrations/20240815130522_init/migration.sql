@@ -17,6 +17,17 @@ CREATE TABLE `users` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `favoris` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idUser` INTEGER NOT NULL,
+    `idPost` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `actors` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `idUser` INTEGER NOT NULL,
@@ -40,7 +51,8 @@ CREATE TABLE `posts` (
     `category` VARCHAR(191) NOT NULL,
     `size` ENUM('XS', 'S', 'M', 'L', 'XL') NOT NULL DEFAULT 'M',
     `content` JSON NOT NULL,
-    `idUser` INTEGER NOT NULL,
+    `idActor` INTEGER NOT NULL,
+    `vues` INTEGER NOT NULL DEFAULT 0,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -48,7 +60,7 @@ CREATE TABLE `posts` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Like` (
+CREATE TABLE `likes` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `idUser` INTEGER NOT NULL,
     `idPost` INTEGER NOT NULL,
@@ -59,7 +71,7 @@ CREATE TABLE `Like` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `Dislike` (
+CREATE TABLE `dislikes` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `idUser` INTEGER NOT NULL,
     `idPost` INTEGER NOT NULL,
@@ -74,9 +86,10 @@ CREATE TABLE `comments` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `content` VARCHAR(191) NOT NULL,
     `idUser` INTEGER NOT NULL,
-    `idPost` INTEGER NOT NULL,
+    `idPost` INTEGER NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `idStory` INTEGER NULL,
 
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -115,17 +128,6 @@ CREATE TABLE `reposts` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `vues` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `idUser` INTEGER NOT NULL,
-    `idPost` INTEGER NOT NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
-
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `reports` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `idUser` INTEGER NOT NULL,
@@ -143,6 +145,7 @@ CREATE TABLE `produits` (
     `description` VARCHAR(191) NOT NULL,
     `image` VARCHAR(191) NOT NULL,
     `price` DOUBLE NOT NULL,
+    `qte` INTEGER NOT NULL,
     `idUser` INTEGER NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
@@ -163,37 +166,115 @@ CREATE TABLE `follows` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `_PostToUser` (
-    `A` INTEGER NOT NULL,
-    `B` INTEGER NOT NULL,
+CREATE TABLE `ventes` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idActor` INTEGER NOT NULL,
+    `idProduit` INTEGER NOT NULL,
+    `idUser` INTEGER NOT NULL,
+    `price` DOUBLE NOT NULL,
+    `quantity` INTEGER NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `_PostToUser_AB_unique`(`A`, `B`),
-    INDEX `_PostToUser_B_index`(`B`)
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `commandes` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idUser` INTEGER NOT NULL,
+    `idProduit` INTEGER NOT NULL,
+    `montant` DOUBLE NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `commande_produits` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idCommande` INTEGER NOT NULL,
+    `idProduit` INTEGER NOT NULL,
+    `qte` INTEGER NOT NULL,
+    `price` DOUBLE NOT NULL,
+
+    UNIQUE INDEX `commande_produits_idProduit_idCommande_key`(`idProduit`, `idCommande`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `stories` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idActory` INTEGER NOT NULL,
+    `photo` VARCHAR(191) NOT NULL,
+    `description` VARCHAR(191) NOT NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `vues` INTEGER NOT NULL DEFAULT 0,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `codes` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `code` VARCHAR(191) NOT NULL,
+    `price` DOUBLE NOT NULL,
+    `credit` INTEGER NOT NULL,
+    `status` ENUM('PENDING', 'USED') NOT NULL DEFAULT 'PENDING',
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `chats` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `idUser` INTEGER NOT NULL,
+    `idActor` INTEGER NOT NULL,
+    `message` VARCHAR(191) NOT NULL,
+    `content` JSON NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `favoris` ADD CONSTRAINT `favoris_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `favoris` ADD CONSTRAINT `favoris_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `actors` ADD CONSTRAINT `actors_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `posts` ADD CONSTRAINT `posts_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `posts` ADD CONSTRAINT `posts_idActor_fkey` FOREIGN KEY (`idActor`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Like` ADD CONSTRAINT `Like_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `likes` ADD CONSTRAINT `likes_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Like` ADD CONSTRAINT `Like_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `likes` ADD CONSTRAINT `likes_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Dislike` ADD CONSTRAINT `Dislike_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `dislikes` ADD CONSTRAINT `dislikes_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Dislike` ADD CONSTRAINT `Dislike_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `dislikes` ADD CONSTRAINT `dislikes_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `comments` ADD CONSTRAINT `comments_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `comments` ADD CONSTRAINT `comments_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `comments` ADD CONSTRAINT `comments_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `comments` ADD CONSTRAINT `comments_idStory_fkey` FOREIGN KEY (`idStory`) REFERENCES `stories`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `tags` ADD CONSTRAINT `tags_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -211,12 +292,6 @@ ALTER TABLE `reposts` ADD CONSTRAINT `reposts_idUser_fkey` FOREIGN KEY (`idUser`
 ALTER TABLE `reposts` ADD CONSTRAINT `reposts_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `vues` ADD CONSTRAINT `vues_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `vues` ADD CONSTRAINT `vues_idPost_fkey` FOREIGN KEY (`idPost`) REFERENCES `posts`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `reports` ADD CONSTRAINT `reports_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -232,7 +307,28 @@ ALTER TABLE `follows` ADD CONSTRAINT `follows_idUser_fkey` FOREIGN KEY (`idUser`
 ALTER TABLE `follows` ADD CONSTRAINT `follows_idActor_fkey` FOREIGN KEY (`idActor`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_PostToUser` ADD CONSTRAINT `_PostToUser_A_fkey` FOREIGN KEY (`A`) REFERENCES `posts`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ventes` ADD CONSTRAINT `ventes_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `_PostToUser` ADD CONSTRAINT `_PostToUser_B_fkey` FOREIGN KEY (`B`) REFERENCES `users`(`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `ventes` ADD CONSTRAINT `ventes_idActor_fkey` FOREIGN KEY (`idActor`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `ventes` ADD CONSTRAINT `ventes_idProduit_fkey` FOREIGN KEY (`idProduit`) REFERENCES `produits`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `commandes` ADD CONSTRAINT `commandes_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `commande_produits` ADD CONSTRAINT `commande_produits_idCommande_fkey` FOREIGN KEY (`idCommande`) REFERENCES `commandes`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `commande_produits` ADD CONSTRAINT `commande_produits_idProduit_fkey` FOREIGN KEY (`idProduit`) REFERENCES `produits`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `stories` ADD CONSTRAINT `stories_idActory_fkey` FOREIGN KEY (`idActory`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `chats` ADD CONSTRAINT `chats_idUser_fkey` FOREIGN KEY (`idUser`) REFERENCES `users`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `chats` ADD CONSTRAINT `chats_idActor_fkey` FOREIGN KEY (`idActor`) REFERENCES `actors`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;

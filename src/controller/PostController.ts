@@ -423,14 +423,16 @@ static  createPost = async (req: Request, res: Response) => {
                 id: Number(userId)
             }
         });
+
         if (user === null) {
             return res.status(400).json({ message: "User not found" });
         }
-        const actor = await prisma.user.findUnique({
+        const actor = await prisma.actor.findUnique({
             where: {
-                id: Number(userId)
+                idUser: Number(userId)
             }
         })
+
         if (actor === null) {
             return res.status(400).json({ message: "Actor not found" });
         }
@@ -439,17 +441,18 @@ static  createPost = async (req: Request, res: Response) => {
                 idActor: Number(actor.id),
                 title: req.body.title,
                 content: req.body.content,
-                category: req.body.image,
+                category: req.body.category,
                 description: req.body.description,
-
             },
         });
+        //  console.log(actor);
+
         res.json({ message: "Post created successfully",
             data: newPost,
             status: 200
         });
     } catch (error) {
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: "Internal server errors" });
     }
 }
 //supprimer un post
@@ -532,7 +535,7 @@ static getPostActor = async (req:Request,res:Response) => {
             where: {
                 id: Number(idActor)
             }     
-        })
+        }) 
         if(actor === null) {
             return res.status(400).json({ message: "actor not found" });
         }
@@ -645,7 +648,7 @@ static updatetag = async (req:Request,res:Response) => {
                 id: Number(postId)
             }
         }); 
-        
+
         if (post === null) {
             return res.status(400).json({ message: "Post not found" });
         }
@@ -692,6 +695,131 @@ static gettag = async (req:Request,res:Response) => {
         res.status(500).json({ message: "Internal server error" });
     }
     
+}
+
+static deletetag = async (req:Request,res:Response) => {
+    try {
+        const tagId = req.params.tagId;
+        const tag = await prisma.tag.delete({
+            where: {
+                id: Number(tagId)
+            }
+        });
+        res.json({ message: "Tag deleted successfully",
+            data: tag,
+            status: 200
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+    
+}
+
+static gettagbypost = async (req:Request,res:Response) => {
+    try {
+        const postId = req.params.postId;
+        const post = await prisma.post.findUnique({
+            where: {
+                id: Number(postId)
+            }
+        });
+        if (post === null) {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        const tag = await prisma.tag.findMany({
+            where: {
+                idPost: Number(postId)
+            }
+        });
+        res.json({ message: "Tag retrieved successfully",
+            data: tag,
+            status: 200
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+}
+
+//add favoris
+static addfavoris = async (req:Request,res:Response) => {
+    try {
+        const userId = req.params.userId;
+        const postId = req.params.postId;
+        const post = await prisma.post.findUnique({
+            where: {
+                id: Number(postId)
+            }
+        })
+        if(post === null) {
+            return res.status(400).json({ message: "Post not found" });
+        }
+        const actor = await prisma.user.findUnique({
+            where: {
+                id: Number(userId)
+            }
+        })
+        if(actor === null) {
+            return res.status(400).json({ message: "Actor not found" });
+        }
+        if(actor?.id === post?.idActor) {
+            return res.status(400).json({ message: "this is your post" });
+        }
+        const fv = await prisma.favori.findMany({
+            where: {
+                idUser: Number(userId),
+                idPost: Number(postId)
+            }
+        })
+        if(fv.length > 0) {
+            const fvs = await prisma.favori.deleteMany({
+                where: {
+                    idUser: Number(userId),
+                    idPost: Number(postId)
+                }
+            })
+            res.json({ message: "Favori deleted successfully",
+                data: fvs,
+                status: 200
+            });
+        }
+
+
+        const favor = await prisma.favori.create({
+            data: {
+                idUser: Number(userId),
+                idPost: Number(postId)
+            }
+        });
+        res.json({ message: "Favori created successfully",
+            data: favor,
+            status: 200
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
+    
+}
+
+//my favoris
+static getfavoris = async (req:Request,res:Response) => {
+    try {
+        const userId = req.params.userId;
+        const favoris = await prisma.favori.findMany({
+            where: {
+                idUser: Number(userId)
+            }
+        });
+        res.json({ message: "Favoris retrieved successfully",
+            data: favoris,
+            status: 200
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: "Internal server error" });
+    }
 }
 
 
